@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="mn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Морин Уралдаан</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      text-align: center;
+      background: linear-gradient(to right, #fdf4e3, #e6f0ff);
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 2.8em;
+      color: #1b1464;
+    }
+
+    #current-player {
+      font-size: 24px;
+      font-weight: bold;
+      margin: 15px 0;
+      color: #3d2c8d;
+    }
+      @keyframes glow {
+        0%, 100% {
+          text-shadow: 
+            0 0 10px rgba(255, 182, 193, 0.9),
+            0 0 20px rgba(173, 216, 230, 0.9),
+            0 0 30px rgba(221, 160, 221, 0.8);
+          transform: scale(1);
+        }
+        50% {
+          text-shadow: 
+            0 0 25px rgba(255, 182, 193, 1),
+            0 0 40px rgba(173, 216, 230, 1),
+            0 0 60px rgba(221, 160, 221, 1);
+          transform: scale(1.03);
+        }
+      }
+
+      @keyframes flicker {
+        0%, 100% { opacity: 1; }
+        45% { opacity: 0.95; }
+        50% { opacity: 0.85; }
+        55% { opacity: 0.98; }
+      }
+
+      .glow-title {
+        font-size: 58px;
+        text-align: center;
+        font-family: 'Segoe UI', sans-serif;
+        font-weight: bold;
+        background: linear-gradient(90deg, #ffb6c1, #add8e6, #dda0dd);
+        animation: glow 3s ease-in-out infinite, flicker 4s infinite;
+        margin-top: 30px;
+      }
+
+    .container {
+      margin: 20px auto;
+    }
+
+    .emoji-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .emoji {
+      font-size: 60px;
+      transition: transform 0.4s;
+    }
+
+    .shake {
+      animation: shake 0.6s ease-in-out;
+    }
+
+    @keyframes shake {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      20% { transform: translate(-3px, 3px) rotate(-5deg); }
+      40% { transform: translate(3px, -3px) rotate(5deg); }
+      60% { transform: translate(-2px, 2px) rotate(-3deg); }
+      80% { transform: translate(2px, -2px) rotate(3deg); }
+      100% { transform: translate(1px, 1px) rotate(0deg); }
+    }
+
+    .track {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 40px;
+      margin: 30px auto;
+      width: 95%;
+      max-width: 800px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .track-line {
+      width: 100%;
+      height: 70px;
+      position: relative;
+      background: repeating-linear-gradient(
+        to right,
+        #e8eaf6,
+        #e8eaf6 10px,
+        #c5cae9 20px
+      );
+      border-radius: 15px;
+      border: 2px dashed #999;
+      overflow: hidden;
+    }
+
+    .horse {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 45px;
+      transition: left 0.4s ease;
+      left: 0;
+    }
+
+    .player-label {
+      position: absolute;
+      top: 5px;
+      left: 10px;
+      font-weight: bold;
+      font-size: 16px;
+      color: #2c3e50;
+    }
+
+    .finish-line {
+      position: absolute;
+      top: 0;
+      right: 0;
+      height: 100%;
+      width: 12px;
+      background: linear-gradient(to bottom, red, darkred);
+      z-index: 5;
+    }
+
+    #result-message {
+      font-size: 20px;
+      margin-top: 10px;
+      min-height: 24px;
+      color: #333;
+    }
+
+    button {
+      padding: 12px 25px;
+      background-color: #ff9e00;
+      color: white;
+      border: none;
+      font-size: 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background-color: #e58c00;
+    }
+  </style>
+</head>
+<body>
+
+  <h1 class="glow-title">Морин уралдаан</h1>
+
+  <div id="current-player">🎯 Ээлж: Тоглогч 1</div>
+
+  <div class="container">
+    <div class="emoji-container">
+      <div class="emoji" id="e1">🐎</div>
+      <div class="emoji" id="e2">🐑</div>
+      <div class="emoji" id="e3">🐐</div>
+      <div class="emoji" id="e4">🐫</div>
+    </div>
+    <button onclick="rollDice()">Шагай орхих</button>
+    <div id="result-message"></div>
+  </div>
+
+  <div class="track">
+    <div class="track-line" id="line1">
+      <span class="player-label">Тоглогч 1</span>
+      <span class="horse" id="horse1">𐂃</span>
+      <div class="finish-line"></div>
+    </div>
+    <div class="track-line" id="line2">
+      <span class="player-label">Тоглогч 2</span>
+      <span class="horse" id="horse2">𐂃</span>
+      <div class="finish-line"></div>
+    </div>
+  </div>
+
+  <script>
+    let position1 = 0; 
+    let position2 = 0;
+    let currentPlayer = 1;
+
+    const shape = [
+      { name: "Морь", emoji: "🐎", moves: true },
+      { name: "Хонь", emoji: "🐑", moves: false },
+      { name: "Тэмээ", emoji: "🐫", moves: false },
+      { name: "Ямаа", emoji: "🐐", moves: false }
+    ];
+
+    function updateCurrentPlayerDisplay() {
+      document.getElementById("current-player").innerText = `🎯 Ээлж: Тоглогч ${currentPlayer}`;
+    }
+
+    function rollDice() {
+      const emojis = [document.getElementById("e1"), document.getElementById("e2"), document.getElementById("e3"), document.getElementById("e4")];
+      const resultDiv = document.getElementById("result-message");
+      let results = [];
+
+      emojis.forEach(el => el.classList.add("shake"));
+
+      setTimeout(() => {
+        emojis.forEach((el, index) => {
+          const rand = shape[Math.floor(Math.random() * shape.length)];
+          el.textContent = rand.emoji;
+          results.push(rand);
+          el.classList.remove("shake");
+        });
+
+        const resultText = results.map(r => `${r.emoji} ${r.name}`).join(", ");
+        resultDiv.innerText = `Шагайны үр дүн: ${resultText}`;
+
+        const moriCount = results.filter(r => r.name === "Морь").length;
+        const increment = moriCount * 12.5;
+
+        if (moriCount > 0) {
+          if (currentPlayer === 1) {
+            position1 += increment;
+            if (position1 >= 100) {
+              document.getElementById("horse1").style.left = "100%";
+              setTimeout(() => {
+                alert("🏆 Тоглогч 1 түрүүллээ!");
+                reset();
+              }, 300);
+              return;
+            } else {
+              document.getElementById("horse1").style.left = position1 + "%";
+            }
+          } else {
+            position2 += increment;
+            if (position2 >= 100) {
+              document.getElementById("horse2").style.left = "100%";
+              setTimeout(() => {
+                alert("🏆 Тоглогч 2 түрүүллээ!");
+                reset();
+              }, 300);
+              return;
+            } else {
+              document.getElementById("horse2").style.left = position2 + "%";
+            }
+          }
+        }
+
+        currentPlayer = currentPlayer === 1 ? 2 : 1;
+        updateCurrentPlayerDisplay();
+      }, 1000);
+    }
+
+    function reset() {
+      position1 = 0;
+      position2 = 0;
+      currentPlayer = 1;
+      document.getElementById("horse1").style.left = "0%";
+      document.getElementById("horse2").style.left = "0%";
+      document.getElementById("result-message").innerText = "";
+      updateCurrentPlayerDisplay();
+    }
+
+    updateCurrentPlayerDisplay();
+  </script>
+
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
